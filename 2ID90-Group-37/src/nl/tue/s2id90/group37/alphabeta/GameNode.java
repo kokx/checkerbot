@@ -15,16 +15,25 @@ import org10x10.dam.game.Move;
 public class GameNode {
 
     private Move move;
+    private GameState state;
 
-    GameState getGameState() {
-        return null;
+    public GameNode(GameState state) {
+        this.state = state;
     }
 
-    Move getBestMove() {
+    public GameState getGameState() {
+        return state;
+    }
+
+    public void setGameState(GameState state) {
+        this.state = state;
+    }
+
+    public Move getBestMove() {
         return move;
     }
 
-    void setBestMove(Move move) {
+    public void setBestMove(Move move) {
         this.move = move;
     }
 }
