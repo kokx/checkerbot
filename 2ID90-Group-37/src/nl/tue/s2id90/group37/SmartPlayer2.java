@@ -18,11 +18,11 @@ import nl.tue.s2id90.group37.alphabeta.GameNode;
  *
  * @author pieter
  */
-public class SmartPlayer extends DraughtsPlayer {
+public class SmartPlayer2 extends DraughtsPlayer {
 
     private int value = 0;
 
-    public SmartPlayer() {
+    public SmartPlayer2() {
         super(UninformedPlayer.class.getResource("resources/smiley.png"));
     }
 
@@ -34,7 +34,7 @@ public class SmartPlayer extends DraughtsPlayer {
         isWhite = s.isWhiteToMove();
         GameNode node = new GameNode(s);
         value = alphaBeta(node);
-        System.out.println("val1: " + value);
+        System.out.println("val2: " + value);
         return node.getBestMove();
 
     }
@@ -126,18 +126,20 @@ public class SmartPlayer extends DraughtsPlayer {
         int blackCount = 0;
 
         for (int piece : pieces) {
+            double mul = 1;
+
             switch (piece) {
                 case DraughtsState.WHITEPIECE:
-                    whiteCount += 2;
+                    whiteCount += 200 * mul;
                     break;
                 case DraughtsState.WHITEKING:
-                    whiteCount += 5;
+                    whiteCount += 500 * mul;
                     break;
                 case DraughtsState.BLACKPIECE:
-                    blackCount += 2;
+                    blackCount += 200 * mul;
                     break;
                 case DraughtsState.BLACKKING:
-                    blackCount += 5;
+                    blackCount += 500 * mul;
                     break;
             }
         }
@@ -154,18 +156,20 @@ public class SmartPlayer extends DraughtsPlayer {
         }
 
         if (meCount == 0) {
-            meCount = -50000;
+            return Integer.MIN_VALUE;
         }
         if (opCount == 0) {
-            opCount = -50000;
+            return Integer.MAX_VALUE;
         }
 
-        return meCount - opCount;
+        meCount *= meCount / opCount;
+
+        return (meCount - opCount) + ((int) (Math.random() * 10));
     }
 
     @Override
     public Integer getValue() {
-        System.out.println("val1: " + value);
+        System.out.println("val2: " + value);
         return value;
     }
 }
