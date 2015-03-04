@@ -65,19 +65,19 @@ import nl.tue.win.util.Timer;
  * @param <M> Move
  * @param <S> GameState<M>
  */
-public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProvider<Competitor>, M, S extends GameState<M>> 
+public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProvider<Competitor>, M, S extends GameState<M>>
     extends javax.swing.JFrame implements GameGuiListener<S,M> {
     private static final Logger LOG = Logger.getLogger(CompetitionGUI.class.getName());
-    
-    
+
+
     private List<Game> schedule;
-    
+
     protected GameGUI<S,Competitor,M> gameGUI;
     private final Predicate<Plugin> selector;
     private final String[] pluginFolders;
     protected Game currentGame=null;     // reference to current game, if this reference is null, there is no game going on
     protected List<CompetitionListener<M>> listeners = new ArrayList<>();
-    
+
     /**
      * Creates new form CompetitionGUI
      * @param selector predicate that only results in true if the argument plugin is a suitable plugin
@@ -87,20 +87,20 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         this.selector = selector;
         this.pluginFolders = pluginFolders;
     }
-    
+
     public void initComponents(GameGUI<S,Competitor,M> gameGUI) {
         this.gameGUI = gameGUI;
         initComponents();
-        
-       
+
+
         JPanel boardPanel = gameGUI.getBoardPanel();
         boardContainerPanel.add(boardPanel,BorderLayout.CENTER);
-        
+
         List<? extends JComponent> tabs = gameGUI.getPanels();
         for(JComponent tab : tabs) {
             tabbedPane.add(tab);
         }
-        
+
         tabbedPane.remove(rankingPanel);
     }
 
@@ -385,13 +385,13 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
     }// </editor-fold>//GEN-END:initComponents
 
     private void createScheduleButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_createScheduleButtonActionPerformed
-        createSchedule();        
+        createSchedule();
     }//GEN-LAST:event_createScheduleButtonActionPerformed
 
     private void startGameButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_startGameButtonActionPerformed
         int row = gamesTable.getSelectedRow();
         if (row != -1) {
-            Game g = schedule.get(row);   
+            Game g = schedule.get(row);
             startGame(g);
         }
     }//GEN-LAST:event_startGameButtonActionPerformed
@@ -404,11 +404,11 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             currentGame = null;
             updateGUI();
         }
-        
+        finishGame(currentGame, gameGUI.getCurrentGameState());
     }//GEN-LAST:event_stopGameButtonActionPerformed
 
-    
-    
+
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JLabel blackLabel;
     private JPanel blackPanel;
@@ -430,7 +430,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
     private JLabel whiteValueLabel;
     // End of variables declaration//GEN-END:variables
 
-   
+
 
     //<editor-fold defaultstate="collapsed" desc="game play">
     /**
@@ -439,19 +439,19 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
      */
     public void startGame(Game game) {
         currentGame = game;
-        
+
         // initialize game state
         notifyCompetitionListeners(game, true); // notify of start of game
-        S gs = gameGUI.getCurrentGameState(); 
-        
+        S gs = gameGUI.getCurrentGameState();
+
         // fill player labels
         fillPlayerLabel(game.first, whiteLabel);
         fillPlayerLabel(game.second, blackLabel);
-        
+
         // start the game
         continueGame(game, gs);
     }
-        
+
     SearchTask currentSearchTask=null;
     private void continueGame(final Game game, final S gs) {
         if ((currentGame==null) || gs.isEndState()) {
@@ -462,7 +462,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             if (gs.isWhiteToMove())
                 currentPlayer  =  game.first;
             else currentPlayer = game.second;
-            
+
             if (currentPlayer.isHuman()) {
                 //getHumanMove(game, gs); done via GameGUIListener
                 currentSearchTask=null;
@@ -471,7 +471,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             }
         }
     }
-    
+
     private void finishGame(final Game game, final S gs) {
         currentGame = null;
         updateGUI(); updateGUI(game,gs);
@@ -483,7 +483,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         updateRanking();
         notifyCompetitionListeners(game,false); // notify of end of game
     }
-    
+
     private SearchTask getComputerMove(final Player currentPlayer, final S gs, final Game game) {
         SearchTask<M, Long, S> searchTask;
         final Timer timer = new Timer();
@@ -493,26 +493,26 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             @Override
             public void done(M m) {
                 timer.stop();
-                
+
                 // sleep at least MIN DELAY ms before doing the move on the board
                 long dt = timer.elapsedTimeInMilliSeconds();
                 System.err.println("dt = " + dt + "/" + 1000*maxTime+"\n\n");
                 if (dt <MIN_DELAY) {
                     sleep(MIN_DELAY-dt);
                 }
-                
+
                 // apply move in the current game state
                 if (gs.getMoves().contains(m)) {
                     //gs.doMove(m);
                     notifyCompetitionListeners(m); // notify of next AI move
                     //gameGUI.animateMove(m);
                     // recurse
-                    continueGame(game,gs); 
+                    continueGame(game,gs);
                 } else {
                     String message=("<html><center>"+(gs.isWhiteToMove()?"White":"Black") + " player ("+currentPlayer.getName()+")<br> tries an illegal move:<br>" + m);
                     LOG.log(Level.SEVERE, message);
                     JOptionPane.showMessageDialog(rootPane, message, "illegal move", JOptionPane.ERROR_MESSAGE);
-                    finishGame(game,gs); 
+                    finishGame(game,gs);
                 }
 
             }
@@ -522,7 +522,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         return searchTask;
     }
     //</editor-fold>
-     
+
     int getResult(Identity p) {
         int result=0;
         for (Game g : schedule) {
@@ -534,7 +534,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         }
         return result;
     }
-    
+
     //<editor-fold defaultstate="collapsed" desc="update CompetitionGUI methods">
     private void updateGUI(Game game, S gs) {
         if (game!=null) {
@@ -546,11 +546,11 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         gameGUI.show(gs);
         updateWhoIsToMove(gs);
     }
-    
+
     private void updateRanking() {
         final String[] columns = {"name", "W", "D","L", "P" };
         final Class[] classes = {String.class, Integer.class, Integer.class, Integer.class, Integer.class};
-        
+
         // create ordered list of players, ordered by points gained
         final Set<Player> players = new TreeSet<>(new Comparator<Player>() {
             @Override
@@ -565,39 +565,39 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
                 }
             }
         });
-        
+
         for(Game game: schedule) {
             players.add(game.first);
             players.add(game.second);
         }
-        
+
         rankingTable.setModel(new TableModel() {
-            
+
             @Override
             public int getRowCount() {
                 return players.size();
             }
-            
+
             @Override
             public int getColumnCount() {
                 return columns.length;
             }
-            
+
             @Override
             public String getColumnName(int columnIndex) {
                 return columns[columnIndex];
             }
-            
+
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 return classes[columnIndex];
             }
-            
+
             @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return false;
             }
-            
+
             @Override
             public Object getValueAt(int rowIndex, int columnIndex) {
                 Player[] h = players.toArray(new Player[0]);
@@ -607,7 +607,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
                     return "0";
                 }
             }
-            
+
             @Override
             public void setValueAt(Object aValue, int rowIndex, int columnIndex) { }
             @Override
@@ -616,15 +616,15 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             public void removeTableModelListener(TableModelListener l) { }
         });
     }
-    
+
     protected void updateWhoIsToMove(S ds) {
         boolean w2m = ds.isWhiteToMove();
         whiteLabel.setEnabled(w2m);
         blackLabel.setEnabled(!w2m);
     }
-    
+
     private void fillPlayerLabel(Player player, JLabel label) {
-        
+
         label.setText(player.getName());
         ImageIcon icon = player.getIcon();
         if (icon!=null) {
@@ -635,7 +635,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             label.setIcon(icon);
         }
     }
-    
+
     private void fillTable(List<Game> schedule) {
         TableModel model = new DefaultTableModel(new String[]{"white", "black", "result"}, schedule.size());
         int row = 0;
@@ -652,16 +652,16 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
     }
 //</editor-fold>
 
-    
+
     private void updateGUI() {
         boolean scheduledGames = gamesTable.getModel().getRowCount()>0;
             startGameButton.setEnabled(scheduledGames && currentGame==null);
             stopGameButton.setEnabled(scheduledGames && currentGame!=null);
     }
     //<editor-fold defaultstate="collapsed" desc="auxiliary methods">
-    
-   
-    
+
+
+
     private static void sleep(long dt) {
         try { TimeUnit.MILLISECONDS.sleep(dt); } catch (InterruptedException ex) { }
     }
@@ -671,7 +671,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         List<P> plugins = getPlugins(pluginFolders);
         List<Competitor> players = SelectionPanel.showDialog(this, plugins);
         //List<P> players = PluginSelectionPanel.showDialog(this,plugins);
-        
+
         if (players!=null) {
             Competition competition = new Competition(players);
             schedule = competition.createSchedule();
@@ -679,17 +679,17 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
             updateRanking();
         }
         updateGUI();
-    }   
-    
+    }
+
     //<editor-fold defaultstate="collapsed" desc="CompetitionListener handling">
     public void add(CompetitionListener<M> l) {
         listeners.add(l);
     }
-    
+
     public void remove(CompetitionListener<M> l) {
         listeners.remove(l);
     }
-    
+
     private void notifyCompetitionListeners(M m) {
         for(CompetitionListener<M> l: listeners) {
             l.onAIMove(m);

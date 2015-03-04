@@ -19,14 +19,14 @@ import nl.tue.s2id90.group37.alphabeta.GameNode;
  *
  * @author pieter
  */
-public class StukkenTeller extends DraughtsPlayer {
+public class IDQ2 extends DraughtsPlayer {
 
     private int value = 0;
 
-    private Random rand = new Random();
+    Random rand = new Random();
 
-    public StukkenTeller() {
-        super(UninformedPlayer.class.getResource("resources/smiley.png"));
+    public IDQ2() {
+        super(UninformedPlayer.class.getResource("resources/shark.png"));
     }
 
     protected boolean isWhite;
@@ -38,11 +38,14 @@ public class StukkenTeller extends DraughtsPlayer {
     public Move getMove(DraughtsState s) {
         isWhite = s.isWhiteToMove();
         GameNode node = new GameNode(s);
+        stopped = false;
         try {
-            value = alphaBeta(node);
+            for (int i = 2; true; i++) {
+                depthLimit = i;
+                value = alphaBeta(node);
+            }
         } catch (Exception e) {
-            List<Move> moves = s.getMoves();
-            return moves.get(0);
+            stopped = false;
         }
         return node.getBestMove();
     }
@@ -53,7 +56,7 @@ public class StukkenTeller extends DraughtsPlayer {
         return alphaBetaMax(node, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
     }
 
-    int depthLimit = 7;
+    int depthLimit = 8;
 
     /**
      *
@@ -63,15 +66,15 @@ public class StukkenTeller extends DraughtsPlayer {
      * @return Integer
      */
     int alphaBetaMax(GameNode node, int alpha, int beta, int depth) throws Exception {
+        if (stopped) {
+            throw new Exception("stopped");
+        }
+
         GameState state = node.getGameState();
         List<Move> moves = state.getMoves();
 
-        if (moves.isEmpty() || depth >= depthLimit) {
+        if (moves.isEmpty() || (depth >= depthLimit && isQuiet((DraughtsState) state))) {
             return evaluate((DraughtsState) state);
-        }
-
-        if (stopped) {
-            throw new Exception("stopped");
         }
 
         Move bestMove = moves.get(0);
@@ -107,7 +110,7 @@ public class StukkenTeller extends DraughtsPlayer {
         GameState state = node.getGameState();
         List<Move> moves = state.getMoves();
 
-        if (moves.isEmpty() || depth >= depthLimit) {
+        if (moves.isEmpty() || (depth >= depthLimit && isQuiet((DraughtsState) state))) {
             return evaluate((DraughtsState) state);
         }
 
@@ -131,6 +134,10 @@ public class StukkenTeller extends DraughtsPlayer {
 
         node.setBestMove(bestMove);
         return beta;
+    }
+
+    protected boolean isQuiet(DraughtsState state) {
+        return state.getMoves().isEmpty() || !state.getMoves().get(0).isCapture();
     }
 
     public int evaluate(DraughtsState state) {

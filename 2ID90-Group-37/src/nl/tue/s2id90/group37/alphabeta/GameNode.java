@@ -14,11 +14,21 @@ import org10x10.dam.game.Move;
  */
 public class GameNode {
 
+    private Move bestMove;
     private Move move;
     private GameState state;
+    private GameNode prev;
 
     public GameNode(GameState state) {
         this.state = state;
+        this.prev = null;
+        this.move = null;
+    }
+
+    public GameNode(GameState state, GameNode prev, Move move) {
+        this.state = state;
+        this.prev = prev;
+        this.move = move;
     }
 
     public GameState getGameState() {
@@ -30,10 +40,18 @@ public class GameNode {
     }
 
     public Move getBestMove() {
-        return move;
+        return bestMove;
     }
 
     public void setBestMove(Move move) {
-        this.move = move;
+        this.bestMove = move;
+    }
+
+    public Move getMove() {
+        return move;
+    }
+
+    public GameNode getPrev() {
+        return this.prev;
     }
 }

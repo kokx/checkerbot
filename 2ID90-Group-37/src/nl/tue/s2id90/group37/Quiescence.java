@@ -31,21 +31,31 @@ public class Quiescence extends DraughtsPlayer {
 
     protected boolean isWhite;
 
+    protected boolean stopped = false;
+
     @Override
     /** @return a good move **/
     public Move getMove(DraughtsState s) {
         isWhite = s.isWhiteToMove();
-        GameNode node = new GameNode(s);
-        value = alphaBeta(node);
+        GameNode node = new GameNode(s.clone());
+        stopped = false;
+        try {
+            value = alphaBeta(node);
+        } catch (Exception e) {
+            List<Move> moves = s.getMoves();
+            return moves.get(0);
+        }
         return node.getBestMove();
 
     }
 
-    int alphaBeta(GameNode node) {
+    public void stop() { stopped = true; }
+
+    int alphaBeta(GameNode node) throws Exception {
         return alphaBetaMax(node, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
     }
 
-    int depthLimit = 6;
+    int depthLimit = 7;
 
     /**
      *
@@ -54,7 +64,7 @@ public class Quiescence extends DraughtsPlayer {
      * @param beta
      * @return Integer
      */
-    int alphaBetaMax(GameNode node, int alpha, int beta, int depth) {
+    int alphaBetaMax(GameNode node, int alpha, int beta, int depth) throws Exception{
         GameState state = node.getGameState();
         List<Move> moves = state.getMoves();
 
@@ -91,12 +101,16 @@ public class Quiescence extends DraughtsPlayer {
      * @param beta
      * @return Integer
      */
-    int alphaBetaMin(GameNode node, int alpha, int beta, int depth) {
+    int alphaBetaMin(GameNode node, int alpha, int beta, int depth) throws Exception {
         GameState state = node.getGameState();
         List<Move> moves = state.getMoves();
 
         if (moves.isEmpty() || (depth >= depthLimit && isQuiet((DraughtsState) state))) {
             return evaluate((DraughtsState) state);
+        }
+
+        if (stopped) {
+            throw new Exception("stopped");
         }
 
         Move bestMove = moves.get(0);
@@ -122,7 +136,6 @@ public class Quiescence extends DraughtsPlayer {
     }
 
     protected boolean isQuiet(DraughtsState state) {
-        // TODO: determine quietness
         return state.getMoves().isEmpty() || !state.getMoves().get(0).isCapture();
     }
 

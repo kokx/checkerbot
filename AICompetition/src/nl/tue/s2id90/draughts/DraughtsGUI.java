@@ -32,7 +32,7 @@ import org10x10.dam.ui.swing.movelist.MoveListModel;
  *
  * @author huub
  */
-public class DraughtsGUI 
+public class DraughtsGUI
     implements GameGUI<DraughtsState,DraughtsPlayer,Move>
 {
 
@@ -76,12 +76,12 @@ public class DraughtsGUI
             moveList = new JMoveList();
             moveList.setModel (moves);
             moveList.setName("moves"); // name as used in tabbedPane
-            
+
             mlm = new MoveListManager(moveList, boardPanel.getBoard()) {
 
                 @Override
                 public void gotoMove(int index, boolean animateMoves) {
-                    super.gotoMove(index, animateMoves); 
+                    super.gotoMove(index, animateMoves);
                     reset(null,board.getBoardState(),false); //notify rest of the world that bs changed
                 }
 
@@ -90,20 +90,20 @@ public class DraughtsGUI
                     super.setBoardState(bs, b);
                     reset(null,board.getBoardState(),false); //notify rest of the world that bs changed
                 }
-                
-                
+
+
             };
-            
+
             numberOfPiecesLabel=new JLabel("-");
             numberOfPiecesLabel.setHorizontalAlignment(JLabel.CENTER);
             numberOfPiecesLabel.setName("progress");
-            
+
             settings = new JPanel();
             settings.setName("options");
             beginStateCheckBox = new JCheckBox("start in begin state");
             beginStateCheckBox.setSelected(true);
             settings.add(beginStateCheckBox);
-            
+
             allowEditingCheckBox = new JCheckBox("allow editing of boardState");
             allowEditingCheckBox.setSelected(false);
             setUpListener = new SetupListener(boardPanel.getBoard());
@@ -111,9 +111,9 @@ public class DraughtsGUI
             allowEditingCheckBox.addActionListener((ActionEvent e) -> {
                 setUpListener.setEnabled(allowEditingCheckBox.isSelected());
             });
-            
+
             settings.add(allowEditingCheckBox);
-            
+
             swapButton = new JButton("swap starting player");
             swapButton.addActionListener((ActionEvent e) -> {
                 Board b = boardPanel.getBoard();
@@ -139,35 +139,35 @@ public class DraughtsGUI
         board.startUpdate();
         board.setBoardState(bs);
         board.endUpdate();
-        
+
         updatePieceCount(gs);
         if (moves.size()>0) {
             moveList.setSelectedIndex(moves.size() - 1);
             moveList.repaint();
-        }     
+        }
     }
-    
-    private void setOptionsEnabled(boolean enabled) {        
+
+    private void setOptionsEnabled(boolean enabled) {
         if (beginStateCheckBox!=null) {
             beginStateCheckBox.setEnabled(enabled);
-            allowEditingCheckBox.setEnabled(enabled); 
+            allowEditingCheckBox.setEnabled(enabled);
             allowEditingCheckBox.setSelected(false); // prevents accidental editing
             swapButton.setEnabled(enabled);
             setUpListener.setEnabled(enabled&&allowEditingCheckBox.isSelected());
             moveList.setEnabled(enabled);
         }
     }
-    
+
     static private BoardState convert(DraughtsState ds, BoardState target) {
         BoardState bs = target==null?new BoardState(10,10) : target;
         bs.setPieces(ds.getPieces());
         bs.setWhiteToMove(ds.isWhiteToMove());
         return bs;
     }
-    
+
     private void updatePieceCount(DraughtsState gs) {
         int[] pieces = gs.getPieces();
-        
+
         int whites=0, blacks=0;
         for(int f=1; f<pieces.length; f=f+1) {
             int piece = pieces[f];
@@ -191,7 +191,7 @@ public class DraughtsGUI
                 super.doMove(m);
                 moves.add(m);
             }
-            
+
             @Override
             public void reset() { // reset movelist when gamestate is updated
                 super.reset();
@@ -199,21 +199,21 @@ public class DraughtsGUI
             }
         };
     }
-    
+
     private void reset(Game game) {
         BoardState bs = new BoardState(10,10);
         if (beginStateCheckBox.isSelected()) {
             bs = new BoardState(10,10);
             bs.setBegin();
-        } 
+        }
         else {
             bs = (BoardState) boardPanel.getBoard().getBoardState(); // we need to clone it, don't no why!
         }
         reset(game, bs,true);
     }
-    
+
     private void reset(Game game, BoardState bs, boolean clearMoves) {
-        ds = getDraughtsState(bs); 
+        ds = getDraughtsState(bs);
         if (clearMoves) {
             moveList.getModel().clear();
             moveList.setModel(moves=new MoveListModel((BoardState) bs.clone(), new ArrayList<>()));
@@ -254,7 +254,7 @@ public class DraughtsGUI
 //                @Override
 //                public boolean isEnabled() { return true; }
 //            };
-//            
+//
 //            board.addMoveListener(ml);
 //
 //        }
@@ -265,32 +265,32 @@ public class DraughtsGUI
         DraughtsState gameState = getCurrentGameState();
         getBoardPanel().getBoard().animateMoveForward(m, ANIMATION_TIME);
         gameState.doMove(m);
-        
+
         notifyGameGuiListeners(gameState); // notify that something changed
     }
-    
+
     private boolean isGameGoingOn() {
         return currentGame!=null;
     }
-    
-    
+
+
     //<editor-fold defaultstate="collapsed" desc="game gui listener stuff">
     private final List<GameGuiListener<DraughtsState,Move>> listeners;
-    
+
     public void add(GameGuiListener l) {
         listeners.add(l);
     }
-    
+
     public void remove(GameGuiListener l) {
         listeners.remove(l);
     }
-    
+
     private void notifyGameGuiListeners(Move m) {
         for(GameGuiListener<DraughtsState,Move> l : listeners) {
             l.onHumanMove(m);
         }
     }
-    
+
     private void notifyGameGuiListeners(DraughtsState ds) {
         for(GameGuiListener<DraughtsState,Move> l : listeners) {
             l.onNewGameState(ds);
@@ -298,20 +298,21 @@ public class DraughtsGUI
     }
 
 //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="CompetitionListener methods">
     @Override
     public void onAIMove(Move m) {
         animateMove(m);
         setHumanToMove(currentGame);
     }
-    
+
     @Override
     public  void onStopGame(Game g) {
         currentGame=null;
         setOptionsEnabled(true);
+        boardPanel.getBoard().removeMoveListener(ml);
     }
-    
+
     @Override
     public  void onStartGame(Game g) {
         currentGame=g;
@@ -319,44 +320,44 @@ public class DraughtsGUI
         setOptionsEnabled(false);
     }
 //</editor-fold>
-    
+
     private void setHumanToMove(Game game) {
         boolean w2m = ds.isWhiteToMove();
         Player p = w2m? game.first: currentGame.second;
         setHumanMovesEnabled(p.isHuman());
     }
-    
+
     MoveListener ml = new MoveListener() {
         @Override
         public void onMoveForward(Board board, Move move) {
             // after a move disable another human move
             setHumanMovesEnabled(false);
             //animateMove(move);
-            
+
             DraughtsState gameState = getCurrentGameState();
             gameState.doMove(move);
-            
+
             notifyGameGuiListeners(move); // notify that a human move has been done
         }
 
         @Override
         public void onMoveBackward(Board board, Move move) {
-            
+
         }
 
         @Override
         public boolean isEnabled() {
             return true;
-        }        
+        }
     };
-            
+
     private void setHumanMovesEnabled(boolean enable) {
-        Board board = boardPanel.getBoard(); 
-        moveBoardListener.setEnabled(enable);  
-        if (enable) {         
+        Board board = boardPanel.getBoard();
+        moveBoardListener.setEnabled(enable);
+        if (enable) {
             board.addMoveListener(ml);
         } else {
             board.removeMoveListener(ml);
         }
     }
-}   
+}
