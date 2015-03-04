@@ -6,6 +6,7 @@
 package nl.tue.s2id90.group37;
 
 import java.util.List;
+import java.util.Random;
 import nl.tue.s2id90.draughts.DraughtsState;
 import nl.tue.s2id90.draughts.player.DraughtsPlayer;
 import nl.tue.s2id90.game.GameState;
@@ -18,25 +19,13 @@ import nl.tue.s2id90.group37.alphabeta.GameNode;
  *
  * @author pieter
  */
-public class SmartPlayer extends DraughtsPlayer {
+public class StukkenTeller extends DraughtsPlayer {
 
     private int value = 0;
 
-    private static final int map[] = {
-        0,
-        130, 130, 130, 130, 130,
-        120, 120, 120, 120, 120,
-        100, 100, 100, 100, 100,
-         80, 100, 110, 110,  90,
-         90, 110, 120, 110,  80,
-         80, 110, 120, 110,  90,
-         90, 110, 110, 100,  80,
-        100, 100, 100, 100, 100,
-        120, 120, 120, 120, 120,
-        130, 130, 130, 130, 130
-    };
+    private Random rand = new Random();
 
-    public SmartPlayer() {
+    public StukkenTeller() {
         super(UninformedPlayer.class.getResource("resources/smiley.png"));
     }
 
@@ -133,21 +122,12 @@ public class SmartPlayer extends DraughtsPlayer {
     }
 
     public int evaluate(DraughtsState state) {
-        if (state.getMoves().isEmpty()) {
-            if (isWhite == state.isWhiteToMove()) {
-                return Integer.MIN_VALUE + 5000;
-            } else {
-                return Integer.MAX_VALUE - 5000;
-            }
-        }
         int[] pieces = state.getPieces();
 
         int whiteCount = 0;
         int blackCount = 0;
 
-        for (int i = 0; i < pieces.length; i++) {
-            int piece = pieces[i];
-            //int mul = (int) (hitsToMul(i, pieces) * map[i]);
+        for (int piece : pieces) {
             int mul = 100;
 
             switch (piece) {
@@ -186,76 +166,11 @@ public class SmartPlayer extends DraughtsPlayer {
 
         meCount *= meCount / opCount;
 
-        return (meCount - opCount) + ((int) (Math.random() * 10));
-    }
-
-    private double hitsToMul(int i, int[] pieces) {
-        int hits = calculateHits(i, pieces);
-
-        switch (hits) {
-            case 1:
-                return 0.9;
-            case 2:
-                return 0.75;
-            case 0:
-            default:
-                return 1;
-        }
-    }
-
-    private int calculateHits(int i, int[] pieces) {
-        if (i <= 6 || i >= 45 || (i % 10) == 5 || (i % 10) == 6 || pieces[i] == DraughtsState.EMPTY) {
-            return 0;
-        }
-
-        int hits = 0;
-        if ((i-1) % 10 >= 5) {
-            // see (i-6, i+5), (i-5, i+4)
-            int x = getColor(pieces[i]);
-            int x1 = getColor(pieces[i-6]);
-            int x2 = getColor(pieces[i+5]);
-            if ((x1 == 0 && x2 == 0) || (x != x1 && x1 != 0 && x2 == 0) || (x != x2 && x2 != 0 && x1 == 0)) {
-                hits++;
-            }
-
-            x1 = getColor(pieces[i-5]);
-            x2 = getColor(pieces[i+4]);
-            if ((x1 == 0 && x2 == 0) || (x != x1 && x1 != 0 && x2 == 0) || (x != x2 && x2 != 0 && x1 == 0)) {
-                hits++;
-            }
-        } else {
-            // see (i-5, i+6), (i-4, i+5)
-            int x = getColor(pieces[i]);
-            int x1 = getColor(pieces[i-5]);
-            int x2 = getColor(pieces[i+6]);
-            if ((x1 == 0 && x2 == 0) || (x != x1 && x1 != 0 && x2 == 0) || (x != x2 && x2 != 0 && x1 == 0)) {
-                hits++;
-            }
-            x1 = getColor(pieces[i-4]);
-            x2 = getColor(pieces[i+5]);
-            if ((x1 == 0 && x2 == 0) || (x != x1 && x1 != 0 && x2 == 0) || (x != x2 && x2 != 0 && x1 == 0)) {
-                hits++;
-            }
-        }
-        return hits;
-    }
-
-    private int getColor(int piece) {
-        // 0 = empty
-        // 1 = black
-        // -1 = white
-        if (piece == DraughtsState.EMPTY) {
-            return 0;
-        }
-        if (piece == DraughtsState.BLACKKING || piece == DraughtsState.BLACKPIECE) {
-            return 1;
-        }
-        return -1;
+        return (meCount - opCount) + rand.nextInt(10);
     }
 
     @Override
     public Integer getValue() {
-        System.out.println("val1: " + value);
         return value;
     }
 }
